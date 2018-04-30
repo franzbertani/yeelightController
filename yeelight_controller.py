@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import getopt
-import sys
 import json
-from yeelight import *
+import os.path
+import sys
 from os.path import expanduser
+
+from yeelight import *
 
 
 def usage():
@@ -13,6 +15,8 @@ def usage():
     print("-c --color HEX_COLOR or -t --temperature COLOR_TEMPERATURE; color settings override temperature")
     print("-b --brightness BRIGHTNESS[0-100]")
     print("-o --off")
+    print("-s --scene SCENE_NAME apply scene preset")
+    print("-j --save-json SCENE_NAME save current settings as new scene")
     print("-r --reset")
 
 
@@ -68,6 +72,20 @@ def read_scene(scene_name):
         print("Scene file missing, no scene called " + scene_name)
 
 
+def save_scene(scene_name):
+    global properties
+    scene_filename = DEFAULT_SCENE_LOCATION + scene_name + ".json"
+    overwrite = True
+    if os.path.isfile(scene_filename):
+        answer = input("Scene " + scene_name + " already there, overwrite? y/n\n").lower()
+        overwrite = answer == 'y' or answer == 'yes'
+    if overwrite:
+        try:
+            with open(DEFAULT_SCENE_LOCATION + scene_name + ".json", "w") as outfile:
+                json.dump(properties, outfile)
+        except IOError:
+            print("Error in saving the new scene JSON")
+
 def apply_properties(bulb):
     bulb.turn_on()
     bulb.set_brightness(int(properties['brightness']))
@@ -80,8 +98,8 @@ def apply_properties(bulb):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hi:c:t:b:s:ro", [
-                                   "help", "color", "temperature", "brightness", "scene", "off", "reset"])
+        opts, args = getopt.getopt(sys.argv[1:], "hi:c:t:b:s:j:ro", [
+                                   "help", "color", "temperature", "brightness", "scene", "save-json", "off", "reset"])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -117,6 +135,9 @@ def main():
             updateUserFile = True
         elif o in ("-s", "--scene"):
             read_scene(a)
+        elif o in ("-j", "--save-json"):
+            save_scene(a)
+            return
         elif o in ("-o", "--off"):
             bulb.turn_off()
             return
