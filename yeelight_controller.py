@@ -5,6 +5,7 @@ import json
 import os.path
 import sys
 from os.path import expanduser
+from os import listdir
 
 from yeelight import *
 
@@ -15,6 +16,7 @@ def usage():
     print("-c --color HEX_COLOR or -t --temperature COLOR_TEMPERATURE; color settings override temperature")
     print("-b --brightness BRIGHTNESS[0-100]")
     print("-o --off")
+    print("-l --list-scenes list all scene presets")
     print("-s --scene SCENE_NAME apply scene preset")
     print("-j --save-json SCENE_NAME save current settings as new scene")
     print("-r --reset")
@@ -72,6 +74,13 @@ def read_scene(scene_name):
         print("Scene file missing, no scene called " + scene_name)
 
 
+def list_scenes():
+    for f in listdir(DEFAULT_SCENE_LOCATION):
+        with open(DEFAULT_SCENE_LOCATION + f, 'r') as infile:
+            scene_properties = json.load(infile)
+            print(f.split('.')[0] + ' - ' + json.dumps(scene_properties))
+
+
 def save_scene(scene_name):
     global properties
     scene_filename = DEFAULT_SCENE_LOCATION + scene_name + ".json"
@@ -98,8 +107,8 @@ def apply_properties(bulb):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hi:c:t:b:s:j:ro", [
-                                   "help", "color", "temperature", "brightness", "scene", "save-json", "off", "reset"])
+        opts, args = getopt.getopt(sys.argv[1:], "hi:c:t:b:s:j:rol", [
+                                   "help", "color", "temperature", "brightness", "scene", "save-json", "off", "reset", "list-scenes"])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -112,6 +121,9 @@ def main():
             create_default_file(a)
         elif o in ("-r", "--reset"):
             reset()
+        elif o in ("-l", "--list-scenes"):
+            list_scenes()
+            return
 
     read_properties()
     bulb = Bulb(properties['ip_addr'])
