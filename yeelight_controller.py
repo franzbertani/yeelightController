@@ -4,8 +4,8 @@ import getopt
 import json
 import os.path
 import sys
-from os.path import expanduser
-from os import listdir
+from os.path import expanduser, dirname
+from os import listdir, makedirs
 
 from yeelight import *
 
@@ -27,7 +27,19 @@ def create_default_file(ip_addr):
     properties['color_rgb'] = DEFAULT_COLOR_RGB
     properties['color_temp'] = DEFAULT_COLOR_TEMP
     properties['ip_addr'] = ip_addr
-    with open(DEFAULT_JSON_NAME, "w") as outFile:
+    if not os.path.exists(os.path.dirname(YEELIGHT_CONFIG_FOLDER)):
+        try:
+            os.makedirs(os.path.dirname(YEELIGHT_CONFIG_FOLDER))
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+    if not os.path.exists(os.path.dirname(DEFAULT_SCENE_LOCATION)):
+        try:
+            os.makedirs(os.path.dirname(DEFAULT_SCENE_LOCATION))
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise
+    with open(DEFAULT_JSON_NAME, "w+") as outFile:
         json.dump(properties, outFile)
 
 
@@ -167,9 +179,10 @@ if __name__ == "__main__":
     DEFAULT_COLOR_TEMP = "4411"
     DEFAULT_COLOR_RGB = []
     home = expanduser("~")
-    DEFAULT_SCENE_LOCATION = home + "/.yeelight_scene/"
-    DEFAULT_JSON_NAME = home + "/.default_yeelight_properties.json"
-    USER_JSON_NAME = home + "/.user_yeelight_properties.json"
+    YEELIGHT_CONFIG_FOLDER = home + "/.config/yeelight_controller/"
+    DEFAULT_SCENE_LOCATION = YEELIGHT_CONFIG_FOLDER + "yeelight_scene/"
+    DEFAULT_JSON_NAME = YEELIGHT_CONFIG_FOLDER + "default_yeelight_properties.json"
+    USER_JSON_NAME = YEELIGHT_CONFIG_FOLDER + "user_yeelight_properties.json"
 
     properties = {}
     user_properties = {}
