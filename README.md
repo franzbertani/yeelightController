@@ -22,7 +22,7 @@ must know the IP address of your light.
 
 To initialize run
 ```
-yeelight_controller.py -i <IP_ADDRESS>
+nycc -i <IP_ADDRESS>
 ```
 
 this will create the config folders in `~/.config/yeelight_controller`
